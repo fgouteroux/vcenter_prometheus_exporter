@@ -1,0 +1,22 @@
+[[source]]
+url = "https://pypi.python.org/simple"
+verify_ssl = true
+name = "pypi"
+
+[dev-packages]
+pytest = "*"
+pylint = "*"
+pytest-cov = "*"
+mock = "*"
+sphinxcontrib-restbuilder = "*"
+sphinx = "*"
+
+[packages]
+PyYAML = "*"
+prometheus-client = "*"
+pyvmomi = "*"
+docopt = "*"
+pipenv = "*"
+
+[requires]
+python_version = "2.7"

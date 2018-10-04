@@ -1,0 +1,232 @@
+port: 9108
+log_level: info
+
+collector:
+
+  vcenter:
+    host: 'vcenter_host'
+    user: 'vcenter_username'
+    pwd: 'vcenter_password'
+    port: 443
+    ignore_ssl: True
+
+  objects:
+    host:
+      type: HostSystem
+      properties:
+        - "name"
+        - "config.product.version"
+        - "config.product.build"
+        - "summary.hardware.cpuMhz"
+        - "summary.hardware.numCpuCores"
+        - "summary.hardware.memorySize"
+        - "summary.runtime.bootTime"
+        - "summary.runtime.powerState"
+        - "summary.runtime.inMaintenanceMode"
+        - "summary.quickStats.uptime"
+        - "summary.quickStats.overallCpuUsage"
+        - "summary.quickStats.overallMemoryUsage"
+    vm:
+      type: VirtualMachine
+      properties:
+        - "name"
+        - "summary.quickStats.overallCpuUsage"
+        - "summary.quickStats.guestMemoryUsage"
+        - "runtime.host"
+        - "runtime.powerState"
+    cluster:
+      type: ComputeResource
+      functions: ['GetResourceUsage']
+      properties:
+        - name
+        - overallStatus
+        - summary.numEffectiveHosts
+        - summary.numHosts
+    datastore:
+      type: Datastore
+      properties:
+        - name
+        - overallStatus
+        - summary.type
+        - summary.url
+        - summary.capacity
+        - summary.freeSpace
+        - summary.accessible
+        - summary.maintenanceMode
+
+  metrics:
+    cluster:
+      vcenter_cluster_overallstatus:
+        description: Global cluster health
+        type: Gauge
+        labels: ["cluster_name"]
+        properties:
+          labels: ["name"]
+          states: {"green": 0, "yellow": 1, "red": 2}
+          value: overallStatus
+
+      vcenter_cluster_hosts_active:
+        type: Gauge
+        labels: ["cluster_name"]
+        properties:
+          labels: ["name"]
+          value: summary.numEffectiveHosts
+      vcenter_cluster_hosts:
+        type: Gauge
+        labels: ["cluster_name"]
+        properties:
+          labels: ["name"]
+          value: summary.numHosts
+      vcenter_cluster_cpu_usage:
+        type: Gauge
+        labels: ["cluster_name"]
+        properties:
+          labels: ["name"]
+          value: cpuUsedMHz
+      vcenter_cluster_cpu_capacity:
+        type: Gauge
+        labels: ["cluster_name"]
+        properties:
+          labels: ["name"]
+          value: cpuCapacityMHz
+      vcenter_cluster_memory_usage:
+        type: Gauge
+        labels: ["cluster_name"]
+        properties:
+          labels: ["name"]
+          value: memUsedMB
+      vcenter_cluster_memory_capacity:
+        type: Gauge
+        labels: ["cluster_name"]
+        properties:
+          labels: ["name"]
+          value: memCapacityMB
+      vcenter_cluster_storage_usage:
+        type: Gauge
+        labels: ["cluster_name"]
+        properties:
+          labels: ["name"]
+          value: storageUsedMB
+      vcenter_cluster_storage_capacity:
+        type: Gauge
+        labels: ["cluster_name"]
+        properties:
+          labels: ["name"]
+          value: storageCapacityMB
+
+    datastore:
+      vcenter_datastore_accessible:
+        type: Gauge
+        labels: ["datastore_name", "datastore_type", "datastore_url"]
+        properties:
+          labels: ["name", "summary.type", "summary.url"]
+          states: {"True": 0, "False": 1}
+          value: summary.accessible
+      vcenter_datastore_maintenancemode:
+        type: Gauge
+        labels: ["datastore_name", "datastore_type", "datastore_url"]
+        properties:
+          labels: ["name", "summary.type", "summary.url"]
+          states: {"normal": 0, "enteringMaintenance": 1, "inMaintenance": 2}
+          value: summary.maintenanceMode
+      vcenter_datastore_overallstatus:
+        type: Gauge
+        labels: ["datastore_name", "datastore_type", "datastore_url"]
+        properties:
+          labels: ["name", "summary.type", "summary.url"]
+          states: {"green": 0, "yellow": 1, "red": 2}
+          value: overallStatus
+
+      vcenter_datastore_capacity:
+        type: Gauge
+        labels: ["datastore_name", "datastore_type", "datastore_url"]
+        properties:
+          labels: ["name", "summary.type", "summary.url"]
+          value: summary.capacity
+      vcenter_datastore_freespace:
+        type: Gauge
+        labels: ["datastore_name", "datastore_type", "datastore_url"]
+        properties:
+          labels: ["name", "summary.type", "summary.url"]
+          value: summary.freeSpace
+
+    host:
+      vcenter_host_maintenance:
+        type: Gauge
+        labels: ["hostname"]
+        properties:
+          labels: ["name"]
+          states: {"True": 0, "False": 1}
+          value: summary.runtime.inMaintenanceMode
+      vcenter_host_power_state:
+        type: Gauge
+        labels: ["hostname"]
+        properties:
+          labels: ["name"]
+          states: {"poweredOn": 0, "poweredOff": 1, "standBy": 2, "unknown": 3}
+          value: summary.runtime.powerState
+      vcenter_host_uptime_seconds:
+        type: Gauge
+        labels: ["hostname"]
+        properties:
+          labels: ["name"]
+          value: summary.quickStats.uptime
+      vcenter_host_cpu_usage:
+        type: Gauge
+        labels: ["hostname"]
+        properties:
+          labels: ["name"]
+          value: summary.quickStats.overallCpuUsage
+      vcenter_host_cpu_frequency:
+        type: Gauge
+        labels: ["hostname"]
+        properties:
+          labels: ["name"]
+          value: summary.hardware.cpuMhz
+      vcenter_host_cpu_cores:
+        type: Gauge
+        labels: ["hostname"]
+        properties:
+          labels: ["name"]
+          value: summary.hardware.numCpuCores
+      vcenter_host_memory_usage:
+        type: Gauge
+        labels: ["hostname"]
+        properties:
+          labels: ["name"]
+          value: summary.quickStats.overallMemoryUsage
+      vcenter_host_memory_capacity:
+        type: Gauge
+        labels: ["hostname"]
+        properties:
+          labels: ["name"]
+          value: summary.hardware.memorySize
+
+    vcenter:
+      vcenter_vcenter_sessions_callcount:
+        type: Gauge
+        labels: ["vcenter", "username", "ipaddress", "useragent"]
+        properties:
+          labels: ["hostname", "session.username", "session.ipaddress", "session.useragent"]
+          value: session.callcount
+
+    vm:
+      vcenter_vm_cpu_usage:
+        type: Gauge
+        labels: ["vmname", "host"]
+        properties:
+          labels: ["name", "runtime.host|name"]
+          value: summary.quickStats.overallCpuUsage
+      vcenter_vm_memory_usage:
+        type: Gauge
+        labels: ["vmname", "host"]
+        properties:
+          labels: ["name", "runtime.host|name"]
+          value: summary.quickStats.guestMemoryUsage
+      vcenter_vm_power_state:
+        type: Gauge
+        labels: ["vmname", "host"]
+        properties:
+          labels: ["name"]
+          states: {"poweredOn": 0, "poweredOff": 1, "suspended": 2}
+          value: runtime.powerState
